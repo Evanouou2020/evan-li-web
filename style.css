@@ -8,6 +8,12 @@ body {
   background: #fff;
 }
 
+/* Wider layout for content-heavy pages (e.g. the Earthquake page's
+   side-by-side lists) — other pages keep the narrower reading width. */
+body.wide {
+  max-width: 1080px;
+}
+
 h1 {
   margin-bottom: 20px;
 }
@@ -261,4 +267,42 @@ main ul:not(.quake-list) li {
   flex-shrink: 0;
   font-size: 0.82rem;
   white-space: nowrap;
+}
+
+.quake-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.quake-column h2 {
+  margin-top: 0;
+}
+
+.show-more-btn {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 9px 0;
+  margin-top: 4px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+}
+
+.show-more-btn:hover {
+  border-color: #999;
+  color: #222;
+}
+
+@media (max-width: 800px) {
+  .quake-columns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
 }

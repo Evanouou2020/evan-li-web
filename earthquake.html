@@ -16,7 +16,7 @@
   <title>Earthquake Monitoring — Evan Li</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="wide">
 
   <nav>
     <a href="index.html">About</a>
@@ -81,23 +81,31 @@
       <a href="https://myearthquake.dpdns.org" target="_blank" rel="noopener">myearthquake.dpdns.org</a>
     </p>
 
-    <h2>Recent earthquakes in California</h2>
-    <p class="section-note">Live from the USGS, past 30 days, all magnitudes.</p>
-    <ul class="quake-list" id="ca-quake-list">
-      <li class="state-msg">Loading…</li>
-    </ul>
+    <div class="quake-columns">
+      <div class="quake-column">
+        <h2>Recent earthquakes in California</h2>
+        <p class="section-note">Live from the USGS, past 30 days, all magnitudes.</p>
+        <ul class="quake-list" id="ca-quake-list">
+          <li class="state-msg">Loading…</li>
+        </ul>
+        <button class="show-more-btn" id="ca-show-more" hidden>Show more</button>
+      </div>
 
-    <h2>Major earthquakes worldwide</h2>
-    <p class="section-note">Live from the USGS, past 5 years.</p>
-    <div class="mag-filter">
-      <button data-mag="6">M6+</button>
-      <button data-mag="7" class="active">M7+</button>
-      <button data-mag="8">M8+</button>
-      <button data-mag="9">M9+</button>
+      <div class="quake-column">
+        <h2>Major earthquakes worldwide</h2>
+        <p class="section-note">Live from the USGS, past 5 years.</p>
+        <div class="mag-filter">
+          <button data-mag="6">M6+</button>
+          <button data-mag="7" class="active">M7+</button>
+          <button data-mag="8">M8+</button>
+          <button data-mag="9">M9+</button>
+        </div>
+        <ul class="quake-list" id="major-quake-list">
+          <li class="state-msg">Loading…</li>
+        </ul>
+        <button class="show-more-btn" id="major-show-more" hidden>Show more</button>
+      </div>
     </div>
-    <ul class="quake-list" id="major-quake-list">
-      <li class="state-msg">Loading…</li>
-    </ul>
   </main>
 
   <footer>
