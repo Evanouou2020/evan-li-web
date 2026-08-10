@@ -114,6 +114,13 @@ nav a.active {
   font-variant-numeric: tabular-nums;
 }
 
+#bg-rgb-decimal {
+  font-size: 0.65rem;
+  color: #cacaca;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
 #tz-select {
   display: block;
   margin: 14px auto 0;
