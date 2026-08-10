@@ -347,6 +347,11 @@ main ul:not(.quake-list) li {
   font-weight: 700;
 }
 
+.seis-stalta-max {
+  color: #d9a840;
+  font-weight: 700;
+}
+
 .seis-range {
   margin-left: auto;
   color: #2a5060;

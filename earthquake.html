@@ -32,37 +32,64 @@
   </nav>
 
   <main>
-    <h1>Earthquake Detection</h1>
+    <h1>Earthquake Monitoring</h1>
     <p>
-      Outside of this site, I run my own real-time earthquake detection and
-      early-warning system out of my house — watching live seismic data,
-      catching small local quakes before they hit the news, and pushing
-      alerts to Discord and phones within seconds of the ground moving.
+      I run my own real-time earthquake detection and early-warning system
+      for the San Francisco Bay Area called Myearthquake. This system is
+      able to intake seismic data, and uses waveform analysis to detect
+      small quakes before they arrive on the USGS websites. It also has
+      alert capability, and can push alerts to SMS, Discord, ntfy, and
+      email. This system is still being developed, however, you can visit
+      the website at
+      <a href="https://myearthquake.dpdns.org" target="_blank" rel="noopener">myearthquake.dpdns.org</a>.
     </p>
 
     <h2>How it works</h2>
-    <ul>
-      <li>Streams live seismic waveform data over the SeedLink protocol from IRIS/EarthScope's real-time feed, across six hand-picked Northern California stations chosen because they're actually available in real time.</li>
-      <li>Every station runs classic STA/LTA (short-term vs. long-term average) trigger detection, cross-checked against a machine-learning phase-picking model (PhaseNet) so a single noisy station can't false-trigger on its own.</li>
-      <li>A real event requires at least 3 stations to agree within a 15-second window before anything gets called — a "coincidence trigger."</li>
-      <li>A full SeisComP pipeline runs in parallel for official-grade location and magnitude solving, pulling in extra regional networks through a custom bridge for stations that aren't on the public real-time feed.</li>
-      <li>For nearby events, it estimates P-wave and S-wave arrival time to home and can fire an early-warning-style countdown before the shaking arrives.</li>
-    </ul>
-
-    <h2>Alerts</h2>
-    <ul>
-      <li><strong>Discord</strong> — rich alert embeds with waveform and map screenshots attached, magnitude-tiered colors, an automatic "Drop, Cover, and Hold On" safety card for larger events, and an @everyone ping above a set magnitude threshold.</li>
-      <li><strong>ntfy</strong> — simple push notifications straight to a phone, no account required.</li>
-      <li><strong>Email</strong> — optional, for full event reports.</li>
-    </ul>
-
-    <h2>Live station feed — PB.B054, Berkeley Hills (Sibley)</h2>
     <p>
-      Straight from IRIS's public real-time archive for <strong>PB.B054</strong>,
-      a Plate Boundary Observatory borehole station in the Berkeley Hills near
-      Sibley — the same station, same live feed my own detector watches. The
-      STA/LTA ratio below is computed live, right in your browser, from the
-      raw signal.
+      This monitoring system uses over 600 stations across California from
+      IRIS/EarthScope's real-time feed, Northern California and Berkeley.
+      Each station has a Python script running an STA/LTA (short-term vs.
+      long-term average) calculation. When the ratio exceeds a calibrated
+      threshold, it is cross-checked with a machine-learning phase-picking
+      model (PhaseNet) to prevent false triggers. Stations often false
+      trigger for various reasons, and this system was implemented after
+      the system detected what looked like a M7.4 earthquake near Merced,
+      California — it turned out to be an electronic failure that had been
+      ruled an earthquake by the STA/LTA calculator.
+    </p>
+    <p>
+      An alert is sent whenever one station reports an unusually high
+      STA/LTA. If more stations concur, then a full alert, detailing
+      magnitude, depth, and potential impacts with appropriate
+      instructions, is delivered to users. If the quake is far enough
+      away, it will trigger a countdown until shaking arrives. This alert
+      is often preliminary, and does not always accurately reflect the
+      ongoing quake.
+    </p>
+    <p>
+      Additionally, there is a secondary system which utilizes the
+      SeisComP <code>scmag</code> module in order to further pinpoint the
+      earthquake's location and magnitude. This system is far more robust,
+      individually pinpointing P-wave and S-wave arrival, and has been
+      able to pinpoint the hypocenter down to less than 0.5 kilometers.
+      <code>scolv</code> then utilizes these individual phase picks in
+      order to generate a focal mechanism (beachball) diagram of each
+      individual quake. Within seconds this information is used to send
+      out a comprehensive report of the quake with SWARM and ShakeMap v4,
+      to determine potential impacts and areas that may have suffered
+      significant damage.
+    </p>
+
+    <h2>Live station feed — Berkeley</h2>
+    <p>
+      This is a live station feed from <strong>PB.B054</strong>, a Plate
+      Boundary Observatory borehole station in the Berkeley Hills near
+      Sibley. This is an EHZ station (extremely short-period, high gain,
+      vertical) and is one of the stations contributing to Myearthquake
+      detection. The STA/LTA ratio is calculated on your computer. IRIS
+      SeedLink often causes lag, which is a major limitation in SeedLink
+      early detection, and I'm currently working on building my own
+      seismometer with real-time reporting.
     </p>
     <div class="seis-panel">
       <div class="seis-header">
@@ -85,22 +112,20 @@
           <button class="seis-win-btn" data-min="60">60m</button>
         </span>
         <span class="seis-stalta" id="seis-stalta">STA/LTA: —</span>
+        <span class="seis-stalta-max" id="seis-stalta-max">Max: —</span>
         <span class="seis-range" id="seis-range"></span>
       </div>
     </div>
 
     <h2>Other tools</h2>
     <ul>
-      <li>Auto-generated focal mechanism (beachball) plots from first-motion picks.</li>
-      <li>Regional and global station maps.</li>
-      <li>A false-trigger checker that cross-references live flight-tracking data — low-flying planes can sometimes look like a tiny quake to a sensitive station.</li>
-      <li><strong>SeismoPhone</strong> — a companion tool that turns a phone's accelerometer into a makeshift seismometer.</li>
+      <li>
+        <strong><a href="https://myearthquake.dpdns.org/seismophone.html" target="_blank" rel="noopener">SeismoPhone</a></strong>
+        — a tool that turns your phone's accelerometer into a makeshift
+        seismometer. Can be used to detect earthquakes and connect to
+        other devices in order to build networks.
+      </li>
     </ul>
-
-    <p>
-      → Full live dashboard, alert history, and station map at
-      <a href="https://myearthquake.dpdns.org" target="_blank" rel="noopener">myearthquake.dpdns.org</a>
-    </p>
 
     <p>
       → Live, up-to-the-minute earthquake lists (California + major

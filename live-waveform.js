@@ -1,28 +1,31 @@
-// Native live waveform panel for PB.B054 — no iframe, no backend of mine
-// required. Pulls directly from IRIS's public real-time archive (the same
-// proven approach already running on myearthquake.dpdns.org, which is why
-// this specific station is reliably available here — the SeisComP-backed
-// dashboard doesn't currently track B054 at all).
+// Native live waveform panel for PB.B054 — no iframe.
 //
-// A raw localhost WebSocket to a locally-running monitor (as used on the
-// main site) is deliberately NOT attempted here: that only ever works when
-// the visitor IS the machine running the monitor script, which is never
-// true for a random website visitor — so it would just be a dead code path
-// that adds a connection-timeout delay before falling back anyway. This
-// goes straight to the fallback that actually works for everyone: IRIS's
-// public REST API, refreshed every 30s.
+// Two data paths, same as myearthquake.dpdns.org itself:
+//   1. A local WebSocket (ws://localhost:8765) to a monitor script — true
+//      real-time, zero added lag. This only ever succeeds when the visitor
+//      IS the machine running that monitor, so for almost everyone it will
+//      fail fast — that's expected, not an error.
+//   2. Falls back to IRIS's public real-time archive, polled frequently,
+//      requesting the freshest window IRIS will actually serve.
 
 const canvas = document.getElementById("seis-canvas");
 const ctx = canvas ? canvas.getContext("2d") : null;
 const seisStatus = document.getElementById("seis-status");
 const seisRange = document.getElementById("seis-range");
 const seisStaltaEl = document.getElementById("seis-stalta");
+const seisStaltaMaxEl = document.getElementById("seis-stalta-max");
+
+const WS_URL = "ws://localhost:8765";
+const WS_CONNECT_TIMEOUT_MS = 4000;
+const BUF_MAX_SAMPLES = 6 * 60 * 60 * 100; // 6 hours at 100 sps, generous ceiling
 
 let bufTimes = [];
 let bufVals = [];
 let bufSps = 100;
 let seisMinutes = 5;
 let displayW = 0, displayH = 160;
+let wsUsing = false;
+let irisPollStarted = false;
 
 function resizeCanvas() {
   if (!canvas) return;
@@ -42,31 +45,63 @@ function pdtStr(d) {
   }) + " PDT";
 }
 
-// Slice the buffer down to the most recent `windowSec` seconds.
+function bufAppend(tEnd, sr, values) {
+  const n = values.length;
+  for (let i = 0; i < n; i++) {
+    bufTimes.push(tEnd - (n - 1 - i) / sr);
+    bufVals.push(values[i]);
+  }
+  if (bufTimes.length > BUF_MAX_SAMPLES) {
+    const drop = bufTimes.length - BUF_MAX_SAMPLES;
+    bufTimes.splice(0, drop);
+    bufVals.splice(0, drop);
+  }
+}
+
+function bufReplace(tEnd, sr, values) {
+  bufTimes = values.map((_, i) => tEnd - (values.length - 1 - i) / sr);
+  bufVals = values;
+  bufSps = sr;
+}
+
 function bufWindow(windowSec) {
-  if (bufTimes.length < 2) return { times: [], vals: [] };
+  if (bufTimes.length < 2) return { times: [], vals: [], startIdx: 0 };
   const tEnd = bufTimes[bufTimes.length - 1];
   const tStart = tEnd - windowSec;
   let startIdx = bufTimes.findIndex((t) => t >= tStart);
   if (startIdx < 0) startIdx = 0;
-  return { times: bufTimes.slice(startIdx), vals: bufVals.slice(startIdx) };
+  return { times: bufTimes.slice(startIdx), vals: bufVals.slice(startIdx), startIdx };
 }
 
 // Classic STA/LTA trigger ratio, computed client-side from the raw signal:
 // short-term average of |amplitude| over the last few seconds, divided by
-// the long-term average over the last minute or so.
-function computeStaLta(vals, sps) {
+// the long-term average over the last ~30 seconds. Computed as a full
+// series (one ratio per sample, via prefix sums so it's O(n) even over a
+// 60-minute buffer) so both "current" and "max over the visible window"
+// are cheap to read off.
+function computeStaLtaSeries(vals, sps) {
   const staSec = 3, ltaSec = 30;
-  const staN = Math.round(staSec * sps);
-  const ltaN = Math.round(ltaSec * sps);
-  if (vals.length < ltaN) return null;
-  const recent = vals.slice(-ltaN);
-  const demeaned = recent.map((v) => Math.abs(v - recent.reduce((a, b) => a + b, 0) / recent.length));
-  const lta = demeaned.reduce((a, b) => a + b, 0) / demeaned.length;
-  const staSlice = demeaned.slice(-staN);
-  const sta = staSlice.reduce((a, b) => a + b, 0) / staSlice.length;
-  if (lta === 0) return null;
-  return sta / lta;
+  const staN = Math.max(1, Math.round(staSec * sps));
+  const ltaN = Math.max(1, Math.round(ltaSec * sps));
+  const n = vals.length;
+  const series = new Array(n).fill(null);
+  if (n < ltaN + 1) return series;
+
+  let sum = 0;
+  for (let i = 0; i < n; i++) sum += vals[i];
+  const mean = sum / n;
+
+  const prefix = new Float64Array(n + 1);
+  for (let i = 0; i < n; i++) prefix[i + 1] = prefix[i] + Math.abs(vals[i] - mean);
+
+  for (let i = ltaN; i <= n; i++) {
+    const lta = (prefix[i] - prefix[i - ltaN]) / ltaN;
+    if (lta === 0) continue;
+    const staStart = Math.max(0, i - staN);
+    const sta = (prefix[i] - prefix[staStart]) / (i - staStart);
+    series[i - 1] = sta / lta;
+  }
+  return series;
 }
 
 function drawWaveform(vals, tStartMs, tEndMs) {
@@ -141,6 +176,8 @@ function redraw() {
   const win = bufWindow(seisMinutes * 60);
   if (win.times.length < 2) {
     drawWaveform(null, 0, 0);
+    seisStaltaEl.textContent = "STA/LTA: —";
+    if (seisStaltaMaxEl) seisStaltaMaxEl.textContent = "Max: —";
     return;
   }
   const tStartMs = win.times[0] * 1000;
@@ -148,8 +185,15 @@ function redraw() {
   drawWaveform(win.vals, tStartMs, tEndMs);
   seisRange.textContent = pdtStr(new Date(tStartMs)) + " → " + pdtStr(new Date(tEndMs));
 
-  const staLta = computeStaLta(bufVals, bufSps);
-  seisStaltaEl.textContent = staLta != null ? `STA/LTA: ${staLta.toFixed(2)}` : "STA/LTA: —";
+  const series = computeStaLtaSeries(bufVals, bufSps);
+  const current = series[series.length - 1];
+  seisStaltaEl.textContent = current != null ? `STA/LTA: ${current.toFixed(2)}` : "STA/LTA: —";
+
+  if (seisStaltaMaxEl) {
+    const windowSeries = series.slice(win.startIdx).filter((v) => v != null);
+    const max = windowSeries.length ? Math.max(...windowSeries) : null;
+    seisStaltaMaxEl.textContent = max != null ? `Max: ${max.toFixed(2)}` : "Max: —";
+  }
 }
 
 function setSeisWindow(min) {
@@ -160,11 +204,57 @@ function setSeisWindow(min) {
   redraw();
 }
 
+// ── Path 1: local real-time monitor (works only for the machine running it) ──
+function wsConnect() {
+  let socket;
+  try {
+    socket = new WebSocket(WS_URL);
+  } catch (e) {
+    startIrisPolling();
+    return;
+  }
+
+  const timeout = setTimeout(() => {
+    if (!wsUsing) { try { socket.close(); } catch (e) {} }
+  }, WS_CONNECT_TIMEOUT_MS);
+
+  socket.onmessage = (e) => {
+    let msg;
+    try { msg = JSON.parse(e.data); } catch (err) { return; }
+    if (!msg.key || !msg.v || !msg.sr || !msg.t_end) return;
+    const sta = msg.key.split(".")[1] || "";
+    if (sta !== "B054") return;
+
+    wsUsing = true;
+    clearTimeout(timeout);
+    seisStatus.textContent = "LIVE";
+    seisStatus.className = "seis-status ok";
+    bufSps = msg.sr;
+    bufAppend(msg.t_end, msg.sr, msg.v);
+    redraw();
+  };
+
+  socket.onerror = () => {};
+
+  socket.onclose = () => {
+    clearTimeout(timeout);
+    if (wsUsing) {
+      seisStatus.textContent = "reconnecting…";
+      seisStatus.className = "seis-status";
+      wsUsing = false;
+      setTimeout(wsConnect, 4000);
+    } else {
+      startIrisPolling();
+    }
+  };
+}
+
+// ── Path 2: IRIS public archive, polled for the freshest available window ──
 async function fetchSeismogramIRIS() {
-  if (!canvas) return;
+  if (!canvas || wsUsing) return;
   const fmt = (d) => d.toISOString().slice(0, 19);
   const WIN_MIN = 60;
-  for (const delayMin of [2, 5, 10, 20]) {
+  for (const delayMin of [1, 2, 5, 10, 20]) {
     const endTime = new Date(Date.now() - delayMin * 60 * 1000);
     const startTime = new Date(endTime.getTime() - WIN_MIN * 60 * 1000);
     const url = `https://service.iris.edu/irisws/timeseries/1/query` +
@@ -184,22 +274,27 @@ async function fetchSeismogramIRIS() {
       }
       if (vals.length < 2) continue;
 
-      const tEnd = endTime.getTime() / 1000;
-      bufTimes = vals.map((_, i) => tEnd - (vals.length - 1 - i) / sps);
-      bufVals = vals;
-      bufSps = sps;
-
-      seisStatus.textContent = `PB.B054 — IRIS (−${delayMin}m lag)`;
+      bufReplace(endTime.getTime() / 1000, sps, vals);
+      seisStatus.textContent = "PB.B054";
       seisStatus.className = "seis-status ok";
       redraw();
       return;
     } catch (e) {
-      // try the next delay tier
+      // try the next tier
     }
   }
-  seisStatus.textContent = "PB.B054 — unavailable";
-  seisStatus.className = "seis-status err";
-  drawWaveform(null, 0, 0);
+  if (bufVals.length === 0) {
+    seisStatus.textContent = "PB.B054 — unavailable";
+    seisStatus.className = "seis-status err";
+    drawWaveform(null, 0, 0);
+  }
+}
+
+function startIrisPolling() {
+  if (irisPollStarted) return;
+  irisPollStarted = true;
+  fetchSeismogramIRIS();
+  setInterval(fetchSeismogramIRIS, 5000);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -211,6 +306,11 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => setSeisWindow(Number(btn.dataset.min)));
   });
 
-  fetchSeismogramIRIS();
-  setInterval(fetchSeismogramIRIS, 30000);
+  wsConnect();
+
+  // Redraw on a fast, fixed cadence regardless of how often new data
+  // actually arrives — keeps the display feeling live even between fetch
+  // cycles, without hammering IRIS with requests it can't usefully answer
+  // any faster.
+  setInterval(redraw, 3000);
 });
