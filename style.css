@@ -139,3 +139,8 @@ footer {
   color: #999;
   font-size: 0.8rem;
 }
+
+.footer-sep {
+  margin: 0 6px;
+  color: #ccc;
+}
