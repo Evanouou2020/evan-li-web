@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W435ES95VL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-W435ES95VL');
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Earthquake List — Evan Li</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="wide">
+
+  <nav>
+    <a href="index.html">About</a>
+    <a href="posts.html">Posts</a>
+    <a href="earthquake.html">Earthquake Detection</a>
+    <a href="earthquake-list.html" class="active">Earthquake List</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <main>
+    <h1>Earthquake List</h1>
+    <p>Live earthquake data, straight from the USGS.</p>
+
+    <div class="activity-card">
+      <div class="activity-card-top">
+        <div class="activity-title">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#3a6fd8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 12 7 12 9 6 13 18 16 12 22 12"/></svg>
+          <h2>Combined Seismic Activity</h2>
+        </div>
+        <select id="activity-period">
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+        </select>
+      </div>
+
+      <div class="activity-period-label" id="activity-period-label">Today (UTC)</div>
+      <div class="activity-mag-row">
+        <span class="activity-mag" id="activity-mag">—</span>
+        <span class="activity-mag-unit">magnitude</span>
+      </div>
+
+      <div class="activity-level" id="activity-level">
+        <span class="activity-level-icon">↗</span>
+        <span class="activity-level-name" id="activity-level-name">—</span>
+        <span>Activity Level</span>
+      </div>
+
+      <p class="activity-legend">
+        Low &lt;5.8 · Normal 5.8–6.4 · Moderate 6.4–7.0 · High 7.0–7.6 · Very High 7.6–8.0 · Extreme 8.0+
+      </p>
+    </div>
+
+    <div class="quake-columns">
+      <div class="quake-column">
+        <h2>Recent earthquakes in California</h2>
+        <p class="section-note">Live from the USGS, past 30 days, all magnitudes.</p>
+        <ul class="quake-list" id="ca-quake-list">
+          <li class="state-msg">Loading…</li>
+        </ul>
+        <button class="show-more-btn" id="ca-show-more" hidden>Show more</button>
+      </div>
+
+      <div class="quake-column">
+        <h2>Major earthquakes worldwide</h2>
+        <p class="section-note">Live from the USGS, past 5 years.</p>
+        <div class="mag-filter">
+          <button data-mag="6">M6+</button>
+          <button data-mag="7" class="active">M7+</button>
+          <button data-mag="8">M8+</button>
+          <button data-mag="9">M9+</button>
+        </div>
+        <ul class="quake-list" id="major-quake-list">
+          <li class="state-msg">Loading…</li>
+        </ul>
+        <button class="show-more-btn" id="major-show-more" hidden>Show more</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p id="last-updated"></p>
+    <p id="view-counts"></p>
+  </footer>
+
+  <script src="bg-shift.js"></script>
+  <script src="last-updated.js"></script>
+  <script src="view-counter.js"></script>
+  <script src="earthquake.js"></script>
+  <script src="seismic-activity.js"></script>
+</body>
+</html>

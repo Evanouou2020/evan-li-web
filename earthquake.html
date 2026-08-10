@@ -13,20 +13,21 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Earthquake Monitoring — Evan Li</title>
+  <title>Earthquake Detection — Evan Li</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="wide">
+<body>
 
   <nav>
     <a href="index.html">About</a>
     <a href="posts.html">Posts</a>
-    <a href="earthquake.html" class="active">Earthquake</a>
+    <a href="earthquake.html" class="active">Earthquake Detection</a>
+    <a href="earthquake-list.html">Earthquake List</a>
     <a href="contact.html">Contact</a>
   </nav>
 
   <main>
-    <h1>Earthquake Monitoring</h1>
+    <h1>Earthquake Detection</h1>
     <p>
       Outside of this site, I run my own real-time earthquake detection and
       early-warning system out of my house — watching live seismic data,
@@ -50,21 +51,20 @@
       <li><strong>Email</strong> — optional, for full event reports.</li>
     </ul>
 
-    <h2>Live station feed — PB.B054, Berkeley Hills (Sibley)</h2>
+    <h2>Live station feed — BK.BKS, Berkeley</h2>
     <p>
-      One of the stations I stream from is <strong>PB.B054</strong>, a Plate
-      Boundary Observatory borehole station up in the Berkeley Hills near
-      Sibley — about 25 km from here. This is the same live waveform viewer
-      from my own dashboard, embedded directly. Use the zoom bar at the top
-      of the panel (10 seconds up to 2 hours) to zoom in and out on the
-      signal.
+      One of the stations I stream from is <strong>BK.BKS</strong>, up on the
+      UC Berkeley campus near the Berkeley Hills / Sibley area — about 25 km
+      from here. This is the same live waveform viewer from my own
+      dashboard, embedded directly. Use the zoom bar at the top of the panel
+      (10 seconds up to 2 hours) to zoom in and out on the signal.
     </p>
     <div class="iframe-wrap">
       <iframe
-        src="https://dashboard.myearthquake.dpdns.org/station/PB/B054/EHZ"
+        src="https://dashboard.myearthquake.dpdns.org/station/BK/BKS/BHZ"
         loading="lazy"
         sandbox="allow-scripts allow-same-origin"
-        title="Live waveform — PB.B054 Berkeley Hills">
+        title="Live waveform — BK.BKS Berkeley">
       </iframe>
     </div>
 
@@ -81,31 +81,10 @@
       <a href="https://myearthquake.dpdns.org" target="_blank" rel="noopener">myearthquake.dpdns.org</a>
     </p>
 
-    <div class="quake-columns">
-      <div class="quake-column">
-        <h2>Recent earthquakes in California</h2>
-        <p class="section-note">Live from the USGS, past 30 days, all magnitudes.</p>
-        <ul class="quake-list" id="ca-quake-list">
-          <li class="state-msg">Loading…</li>
-        </ul>
-        <button class="show-more-btn" id="ca-show-more" hidden>Show more</button>
-      </div>
-
-      <div class="quake-column">
-        <h2>Major earthquakes worldwide</h2>
-        <p class="section-note">Live from the USGS, past 5 years.</p>
-        <div class="mag-filter">
-          <button data-mag="6">M6+</button>
-          <button data-mag="7" class="active">M7+</button>
-          <button data-mag="8">M8+</button>
-          <button data-mag="9">M9+</button>
-        </div>
-        <ul class="quake-list" id="major-quake-list">
-          <li class="state-msg">Loading…</li>
-        </ul>
-        <button class="show-more-btn" id="major-show-more" hidden>Show more</button>
-      </div>
-    </div>
+    <p>
+      → Live, up-to-the-minute earthquake lists (California + major
+      worldwide) are on the <a href="earthquake-list.html">Earthquake List</a> page.
+    </p>
   </main>
 
   <footer>
@@ -116,6 +95,5 @@
   <script src="bg-shift.js"></script>
   <script src="last-updated.js"></script>
   <script src="view-counter.js"></script>
-  <script src="earthquake.js"></script>
 </body>
 </html>
