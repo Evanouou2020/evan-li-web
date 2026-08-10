@@ -21,8 +21,13 @@
   <nav>
     <a href="index.html">About</a>
     <a href="posts.html">Posts</a>
-    <a href="earthquake.html" class="active">Earthquake Detection</a>
-    <a href="earthquake-list.html">Earthquake List</a>
+    <div class="nav-dropdown active">
+      <button class="nav-dropdown-toggle">Earthquake</button>
+      <div class="nav-dropdown-menu">
+        <a href="earthquake.html" class="active">Earthquake Detection</a>
+        <a href="earthquake-list.html">Earthquake List</a>
+      </div>
+    </div>
     <a href="contact.html">Contact</a>
   </nav>
 
@@ -51,21 +56,37 @@
       <li><strong>Email</strong> — optional, for full event reports.</li>
     </ul>
 
-    <h2>Live station feed — BK.BKS, Berkeley</h2>
+    <h2>Live station feed — PB.B054, Berkeley Hills (Sibley)</h2>
     <p>
-      One of the stations I stream from is <strong>BK.BKS</strong>, up on the
-      UC Berkeley campus near the Berkeley Hills / Sibley area — about 25 km
-      from here. This is the same live waveform viewer from my own
-      dashboard, embedded directly. Use the zoom bar at the top of the panel
-      (10 seconds up to 2 hours) to zoom in and out on the signal.
+      Straight from IRIS's public real-time archive for <strong>PB.B054</strong>,
+      a Plate Boundary Observatory borehole station in the Berkeley Hills near
+      Sibley — the same station, same live feed my own detector watches. The
+      STA/LTA ratio below is computed live, right in your browser, from the
+      raw signal.
     </p>
-    <div class="iframe-wrap">
-      <iframe
-        src="https://dashboard.myearthquake.dpdns.org/station/BK/BKS/BHZ"
-        loading="lazy"
-        sandbox="allow-scripts allow-same-origin"
-        title="Live waveform — BK.BKS Berkeley">
-      </iframe>
+    <div class="seis-panel">
+      <div class="seis-header">
+        <span class="seis-title">LIVE WAVEFORM</span>
+        <span class="seis-sub">// PB.B054..EHZ &mdash; Berkeley Digital Seismic Network</span>
+        <span class="seis-status" id="seis-status">loading…</span>
+      </div>
+      <canvas id="seis-canvas"></canvas>
+      <div class="seis-footer">
+        <span>
+          <a href="https://ds.iris.edu/mda/PB/B054/" target="_blank" rel="noopener">PB.B054</a>
+          &mdash; Berkeley Hills, CA &mdash; EHZ
+        </span>
+        <span class="seis-sep">|</span>
+        <span>Window:</span>
+        <span class="seis-win-btns">
+          <button class="seis-win-btn active" data-min="5">5m</button>
+          <button class="seis-win-btn" data-min="10">10m</button>
+          <button class="seis-win-btn" data-min="30">30m</button>
+          <button class="seis-win-btn" data-min="60">60m</button>
+        </span>
+        <span class="seis-stalta" id="seis-stalta">STA/LTA: —</span>
+        <span class="seis-range" id="seis-range"></span>
+      </div>
     </div>
 
     <h2>Other tools</h2>
@@ -95,5 +116,7 @@
   <script src="bg-shift.js"></script>
   <script src="last-updated.js"></script>
   <script src="view-counter.js"></script>
+  <script src="nav-dropdown.js"></script>
+  <script src="live-waveform.js"></script>
 </body>
 </html>

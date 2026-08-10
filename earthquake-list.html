@@ -21,44 +21,19 @@
   <nav>
     <a href="index.html">About</a>
     <a href="posts.html">Posts</a>
-    <a href="earthquake.html">Earthquake Detection</a>
-    <a href="earthquake-list.html" class="active">Earthquake List</a>
+    <div class="nav-dropdown active">
+      <button class="nav-dropdown-toggle">Earthquake</button>
+      <div class="nav-dropdown-menu">
+        <a href="earthquake.html">Earthquake Detection</a>
+        <a href="earthquake-list.html" class="active">Earthquake List</a>
+      </div>
+    </div>
     <a href="contact.html">Contact</a>
   </nav>
 
   <main>
     <h1>Earthquake List</h1>
     <p>Live earthquake data, straight from the USGS.</p>
-
-    <div class="activity-card">
-      <div class="activity-card-top">
-        <div class="activity-title">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#3a6fd8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 12 7 12 9 6 13 18 16 12 22 12"/></svg>
-          <h2>Combined Seismic Activity</h2>
-        </div>
-        <select id="activity-period">
-          <option value="today">Today</option>
-          <option value="week">This Week</option>
-          <option value="month">This Month</option>
-        </select>
-      </div>
-
-      <div class="activity-period-label" id="activity-period-label">Today (UTC)</div>
-      <div class="activity-mag-row">
-        <span class="activity-mag" id="activity-mag">—</span>
-        <span class="activity-mag-unit">magnitude</span>
-      </div>
-
-      <div class="activity-level" id="activity-level">
-        <span class="activity-level-icon">↗</span>
-        <span class="activity-level-name" id="activity-level-name">—</span>
-        <span>Activity Level</span>
-      </div>
-
-      <p class="activity-legend">
-        Low &lt;5.8 · Normal 5.8–6.4 · Moderate 6.4–7.0 · High 7.0–7.6 · Very High 7.6–8.0 · Extreme 8.0+
-      </p>
-    </div>
 
     <div class="quake-columns">
       <div class="quake-column">
@@ -96,6 +71,6 @@
   <script src="last-updated.js"></script>
   <script src="view-counter.js"></script>
   <script src="earthquake.js"></script>
-  <script src="seismic-activity.js"></script>
+  <script src="nav-dropdown.js"></script>
 </body>
 </html>

@@ -38,6 +38,72 @@ nav a.active {
   text-decoration: underline;
 }
 
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown-toggle {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.nav-dropdown-toggle:hover {
+  color: #222;
+  text-decoration: underline;
+}
+
+.nav-dropdown.active .nav-dropdown-toggle {
+  color: #222;
+  text-decoration: underline;
+}
+
+.nav-dropdown-toggle::after {
+  content: "▾";
+  font-size: 0.7em;
+  margin-left: 4px;
+}
+
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 12px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  min-width: 190px;
+  padding: 6px;
+  z-index: 20;
+}
+
+.nav-dropdown.open .nav-dropdown-menu {
+  display: block;
+}
+
+.nav-dropdown-menu a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: #555;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+.nav-dropdown-menu a:hover,
+.nav-dropdown-menu a.active {
+  background: #f5f5f5;
+  color: #222;
+}
+
 .post-list {
   list-style: none;
   margin: 0;
@@ -176,18 +242,114 @@ main ul:not(.quake-list) li {
   margin: -6px 0 14px;
 }
 
-.iframe-wrap {
-  border: 1px solid #e5e5e5;
+/* ---------- live waveform panel ---------- */
+
+.seis-panel {
+  background: #020405;
+  border: 1px solid #1a2530;
   border-radius: 8px;
   overflow: hidden;
   margin: 16px 0 24px;
+  font-family: "SF Mono", "Share Tech Mono", monospace;
 }
 
-.iframe-wrap iframe {
-  width: 100%;
-  height: 480px;
-  border: none;
+.seis-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #0a1218;
+  border-bottom: 1px solid #1a2530;
+  flex-wrap: wrap;
+}
+
+.seis-title {
+  color: #58c4ff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.seis-sub {
+  color: #4a6070;
+  font-size: 0.72rem;
+}
+
+.seis-status {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: #6e7681;
+}
+
+.seis-status.ok {
+  color: #00d472;
+}
+
+.seis-status.err {
+  color: #f85149;
+}
+
+#seis-canvas {
   display: block;
+  width: 100%;
+  height: 160px;
+}
+
+.seis-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #0a1218;
+  border-top: 1px solid #1a2530;
+  color: #4a6070;
+  font-size: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.seis-footer a {
+  color: #58c4ff;
+}
+
+.seis-sep {
+  color: #1e3a4a;
+}
+
+.seis-win-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.seis-win-btn {
+  font-family: inherit;
+  font-size: 0.68rem;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid #1e3a4a;
+  background: none;
+  color: #4a6070;
+  cursor: pointer;
+}
+
+.seis-win-btn:hover {
+  border-color: #58c4ff;
+  color: #58c4ff;
+}
+
+.seis-win-btn.active {
+  background: #10344a;
+  border-color: #58c4ff;
+  color: #58c4ff;
+}
+
+.seis-stalta {
+  color: #00d472;
+  font-weight: 700;
+}
+
+.seis-range {
+  margin-left: auto;
+  color: #2a5060;
 }
 
 .mag-filter {
@@ -307,96 +469,3 @@ main ul:not(.quake-list) li {
   }
 }
 
-/* ---------- Combined Seismic Activity card ---------- */
-
-.activity-card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 16px;
-  padding: 28px 30px;
-  margin: 20px 0 40px;
-  max-width: 460px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-}
-
-.activity-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.activity-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.activity-title h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  line-height: 1.25;
-}
-
-#activity-period {
-  font-family: inherit;
-  font-size: 0.9rem;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #fff;
-  color: #222;
-  flex-shrink: 0;
-}
-
-.activity-period-label {
-  color: #888;
-  font-size: 0.95rem;
-  margin-top: 22px;
-}
-
-.activity-mag-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-top: 6px;
-}
-
-.activity-mag {
-  font-size: 2.6rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.activity-mag-unit {
-  color: #888;
-  font-size: 1.1rem;
-}
-
-.activity-level {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 20px;
-  padding: 14px 18px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  background: #f5f5f5;
-  color: #555;
-  font-size: 1rem;
-}
-
-.activity-level-icon {
-  font-size: 1.1rem;
-}
-
-.activity-level-name {
-  font-weight: 700;
-}
-
-.activity-legend {
-  color: #999;
-  font-size: 0.8rem;
-  margin: 18px 0 0;
-  line-height: 1.5;
-}
