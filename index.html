@@ -17,22 +17,26 @@
   <main>
     <h1>Hi, I'm Evan Li</h1>
 
-    <section id="clock">
-      <div id="clock-time">--:--:--</div>
-      <div id="clock-date">Loading date…</div>
-      <div id="clock-iso">----.--.-</div>
-      <select id="tz-select"></select>
-      <p class="clock-caption">[Write something here about the clock]</p>
-    </section>
-
     <p>
      I am a rising senior at California High School in San Ramon, CA. I built this website in order to create a medium that would best communicate my passions and interests, and to also give people a share of my life.
     </p>
-    <p>
-      You can reach me at <a href="mailto:evanouou2020@gmail.com">evanouou2020@gmail.com</a>.
-    </p>
+
+    <section id="clock">
+      <div id="clock-time">--:--:--</div>
+      <div id="clock-date">Loading date…</div>
+      <div id="clock-iso">----.--.--.---.----.----.----</div>
+      <div id="bg-rgb">RGB(--, --, --)</div>
+      <select id="tz-select"></select>
+      <p class="clock-caption">[Write something here about the clock]</p>
+    </section>
   </main>
 
+  <footer>
+    <p id="last-updated"></p>
+  </footer>
+
+  <script src="bg-shift.js"></script>
   <script src="clock.js"></script>
+  <script src="last-updated.js"></script>
 </body>
 </html>

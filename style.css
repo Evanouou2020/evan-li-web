@@ -100,16 +100,24 @@ nav a.active {
 }
 
 #clock-iso {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #999;
-  letter-spacing: 1px;
   margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+#bg-rgb {
+  font-size: 0.72rem;
+  color: #b5b5b5;
+  margin-top: 4px;
   font-variant-numeric: tabular-nums;
 }
 
 #tz-select {
   display: block;
-  margin: 10px auto 0;
+  margin: 14px auto 0;
+  max-width: 100%;
   font-size: 0.9rem;
   padding: 4px 10px;
   border-radius: 6px;
@@ -121,4 +129,13 @@ nav a.active {
 .clock-caption {
   color: #888;
   font-size: 0.95rem;
+}
+
+footer {
+  margin-top: 60px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e5e5;
+  text-align: center;
+  color: #999;
+  font-size: 0.8rem;
 }
