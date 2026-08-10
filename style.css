@@ -140,7 +140,10 @@ footer {
   font-size: 0.8rem;
 }
 
-.footer-sep {
-  margin: 0 6px;
-  color: #ccc;
+footer p {
+  margin: 0 0 6px;
+}
+
+footer p:last-child {
+  margin-bottom: 0;
 }
