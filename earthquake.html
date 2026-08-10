@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-W435ES95VL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-W435ES95VL');
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Earthquake Monitoring — Evan Li</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav>
+    <a href="index.html">About</a>
+    <a href="posts.html">Posts</a>
+    <a href="earthquake.html" class="active">Earthquake</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+
+  <main>
+    <h1>Earthquake Monitoring</h1>
+    <p>
+      Outside of this site, I run my own real-time earthquake detection and
+      early-warning system out of my house — watching live seismic data,
+      catching small local quakes before they hit the news, and pushing
+      alerts to Discord and phones within seconds of the ground moving.
+    </p>
+
+    <h2>How it works</h2>
+    <ul>
+      <li>Streams live seismic waveform data over the SeedLink protocol from IRIS/EarthScope's real-time feed, across six hand-picked Northern California stations chosen because they're actually available in real time.</li>
+      <li>Every station runs classic STA/LTA (short-term vs. long-term average) trigger detection, cross-checked against a machine-learning phase-picking model (PhaseNet) so a single noisy station can't false-trigger on its own.</li>
+      <li>A real event requires at least 3 stations to agree within a 15-second window before anything gets called — a "coincidence trigger."</li>
+      <li>A full SeisComP pipeline runs in parallel for official-grade location and magnitude solving, pulling in extra regional networks through a custom bridge for stations that aren't on the public real-time feed.</li>
+      <li>For nearby events, it estimates P-wave and S-wave arrival time to home and can fire an early-warning-style countdown before the shaking arrives.</li>
+    </ul>
+
+    <h2>Alerts</h2>
+    <ul>
+      <li><strong>Discord</strong> — rich alert embeds with waveform and map screenshots attached, magnitude-tiered colors, an automatic "Drop, Cover, and Hold On" safety card for larger events, and an @everyone ping above a set magnitude threshold.</li>
+      <li><strong>ntfy</strong> — simple push notifications straight to a phone, no account required.</li>
+      <li><strong>Email</strong> — optional, for full event reports.</li>
+    </ul>
+
+    <h2>Live station feed — PB.B054, Berkeley Hills (Sibley)</h2>
+    <p>
+      One of the stations I stream from is <strong>PB.B054</strong>, a Plate
+      Boundary Observatory borehole station up in the Berkeley Hills near
+      Sibley — about 25 km from here. This is the same live waveform viewer
+      from my own dashboard, embedded directly. Use the zoom bar at the top
+      of the panel (10 seconds up to 2 hours) to zoom in and out on the
+      signal.
+    </p>
+    <div class="iframe-wrap">
+      <iframe
+        src="https://dashboard.myearthquake.dpdns.org/station/PB/B054/EHZ"
+        loading="lazy"
+        sandbox="allow-scripts allow-same-origin"
+        title="Live waveform — PB.B054 Berkeley Hills">
+      </iframe>
+    </div>
+
+    <h2>Other tools</h2>
+    <ul>
+      <li>Auto-generated focal mechanism (beachball) plots from first-motion picks.</li>
+      <li>Regional and global station maps.</li>
+      <li>A false-trigger checker that cross-references live flight-tracking data — low-flying planes can sometimes look like a tiny quake to a sensitive station.</li>
+      <li><strong>SeismoPhone</strong> — a companion tool that turns a phone's accelerometer into a makeshift seismometer.</li>
+    </ul>
+
+    <p>
+      → Full live dashboard, alert history, and station map at
+      <a href="https://myearthquake.dpdns.org" target="_blank" rel="noopener">myearthquake.dpdns.org</a>
+    </p>
+
+    <h2>Recent earthquakes in California</h2>
+    <p class="section-note">Live from the USGS, past 30 days, all magnitudes.</p>
+    <ul class="quake-list" id="ca-quake-list">
+      <li class="state-msg">Loading…</li>
+    </ul>
+
+    <h2>Major earthquakes worldwide</h2>
+    <p class="section-note">Live from the USGS, past 5 years.</p>
+    <div class="mag-filter">
+      <button data-mag="6">M6+</button>
+      <button data-mag="7" class="active">M7+</button>
+      <button data-mag="8">M8+</button>
+      <button data-mag="9">M9+</button>
+    </div>
+    <ul class="quake-list" id="major-quake-list">
+      <li class="state-msg">Loading…</li>
+    </ul>
+  </main>
+
+  <footer>
+    <p id="last-updated"></p>
+    <p id="view-counts"></p>
+  </footer>
+
+  <script src="bg-shift.js"></script>
+  <script src="last-updated.js"></script>
+  <script src="view-counter.js"></script>
+  <script src="earthquake.js"></script>
+</body>
+</html>

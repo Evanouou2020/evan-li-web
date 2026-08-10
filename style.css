@@ -147,3 +147,118 @@ footer p {
 footer p:last-child {
   margin-bottom: 0;
 }
+
+/* ---------- earthquake page ---------- */
+
+main h2 {
+  margin: 36px 0 12px;
+  font-size: 1.2rem;
+}
+
+main ul:not(.quake-list) {
+  padding-left: 20px;
+  margin: 0 0 16px;
+}
+
+main ul:not(.quake-list) li {
+  margin-bottom: 8px;
+}
+
+.section-note {
+  color: #888;
+  font-size: 0.88rem;
+  margin: -6px 0 14px;
+}
+
+.iframe-wrap {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 16px 0 24px;
+}
+
+.iframe-wrap iframe {
+  width: 100%;
+  height: 480px;
+  border: none;
+  display: block;
+}
+
+.mag-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mag-filter button {
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+}
+
+.mag-filter button:hover {
+  border-color: #999;
+}
+
+.mag-filter button.active {
+  background: #222;
+  border-color: #222;
+  color: #fff;
+}
+
+.quake-list {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+}
+
+.quake-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.quake-mag {
+  flex-shrink: 0;
+  min-width: 44px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 6px;
+  color: #fff;
+}
+
+.quake-mag.mag-minor { background: #9aa5b1; }
+.quake-mag.mag-moderate { background: #4a90d9; }
+.quake-mag.mag-strong { background: #d98e2e; }
+.quake-mag.mag-major { background: #c0392b; }
+
+.quake-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.quake-place {
+  font-size: 0.95rem;
+}
+
+.quake-meta {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.quake-link {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
