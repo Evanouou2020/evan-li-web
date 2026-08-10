@@ -1,38 +1,37 @@
 // Slowly rotates the page background through the color spectrum — one
-// full 360° trip every 24 hours. Sampled every second (smooth 1s CSS
-// transition between each step) so it's always visibly, gradually
-// drifting without ever jumping. Saturation/lightness are fixed to a
-// soft pastel so black text stays readable no matter the hue.
+// full cycle every 24 hours, sampled every second with a smooth 1s CSS
+// transition so it's always visibly, gradually drifting.
+//
+// R, G, and B are each their own sine wave, 120° out of phase with each
+// other — unlike standard HSL hue rotation (which pins a channel flat at
+// its min/max for a full third of the cycle), sine waves have no flat
+// plateaus, so all three channels are always in motion simultaneously.
+// Amplitude is kept small and centered high (close to white) to stay a
+// soft pastel that black text stays readable against.
 const CYCLE_MS = 24 * 60 * 60 * 1000;
 const UPDATE_EVERY_MS = 1000;
-const SATURATION = 55;
-const LIGHTNESS = 94;
+const BASE = 242; // center point of the oscillation, out of 255
+const AMPLITUDE = 13; // how far each channel swings from BASE
 
-// Returns unrounded [r, g, b] floats — kept precise on purpose so the
-// decimal readout visibly ticks every second even when the rounded
-// integer RGB value hasn't changed yet.
-function hslToRgbFloat(h, s, l) {
-  s /= 100;
-  l /= 100;
-  const k = (n) => (n + h / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-  return [255 * f(0), 255 * f(8), 255 * f(4)];
+function getRgbFloat(now) {
+  const theta = ((now % CYCLE_MS) / CYCLE_MS) * 2 * Math.PI;
+  const r = BASE + AMPLITUDE * Math.sin(theta);
+  const g = BASE + AMPLITUDE * Math.sin(theta + (2 * Math.PI) / 3);
+  const b = BASE + AMPLITUDE * Math.sin(theta + (4 * Math.PI) / 3);
+  return [r, g, b];
 }
 
 function updateBackground() {
-  const hue = ((Date.now() % CYCLE_MS) / CYCLE_MS) * 360;
-  const [rf, gf, bf] = hslToRgbFloat(hue, SATURATION, LIGHTNESS);
+  const [rf, gf, bf] = getRgbFloat(Date.now());
   const r = Math.round(rf);
   const g = Math.round(gf);
   const b = Math.round(bf);
   document.body.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
 
   const rgbEl = document.getElementById("bg-rgb");
-  if (rgbEl) rgbEl.textContent = `RGB(${r}, ${g}, ${b})`;
-
-  const decimalEl = document.getElementById("bg-rgb-decimal");
-  if (decimalEl) decimalEl.textContent = `${rf.toFixed(4)}, ${gf.toFixed(4)}, ${bf.toFixed(4)}`;
+  if (rgbEl) {
+    rgbEl.textContent = `R: ${rf.toFixed(4)}  G: ${gf.toFixed(4)}  B: ${bf.toFixed(4)}`;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
