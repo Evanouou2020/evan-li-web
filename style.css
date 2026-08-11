@@ -347,9 +347,20 @@ main ul:not(.quake-list) li {
   font-weight: 700;
 }
 
+.seis-stalta-max-block {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
 .seis-stalta-max {
   color: #d9a840;
   font-weight: 700;
+}
+
+.seis-stalta-max-time {
+  font-size: 0.62rem;
+  color: #3a5568;
 }
 
 .seis-range {

@@ -14,6 +14,7 @@ const seisStatus = document.getElementById("seis-status");
 const seisRange = document.getElementById("seis-range");
 const seisStaltaEl = document.getElementById("seis-stalta");
 const seisStaltaMaxEl = document.getElementById("seis-stalta-max");
+const seisStaltaMaxTimeEl = document.getElementById("seis-stalta-max-time");
 
 const WS_URL = "ws://localhost:8765";
 const WS_CONNECT_TIMEOUT_MS = 4000;
@@ -178,6 +179,7 @@ function redraw() {
     drawWaveform(null, 0, 0);
     seisStaltaEl.textContent = "STA/LTA: —";
     if (seisStaltaMaxEl) seisStaltaMaxEl.textContent = "Max: —";
+    if (seisStaltaMaxTimeEl) seisStaltaMaxTimeEl.textContent = "";
     return;
   }
   const tStartMs = win.times[0] * 1000;
@@ -190,9 +192,20 @@ function redraw() {
   seisStaltaEl.textContent = current != null ? `STA/LTA: ${current.toFixed(2)}` : "STA/LTA: —";
 
   if (seisStaltaMaxEl) {
-    const windowSeries = series.slice(win.startIdx).filter((v) => v != null);
-    const max = windowSeries.length ? Math.max(...windowSeries) : null;
-    seisStaltaMaxEl.textContent = max != null ? `Max: ${max.toFixed(2)}` : "Max: —";
+    let maxVal = null, maxAbsIdx = -1;
+    for (let i = win.startIdx; i < series.length; i++) {
+      const v = series[i];
+      if (v != null && (maxVal == null || v > maxVal)) { maxVal = v; maxAbsIdx = i; }
+    }
+    if (maxVal != null) {
+      seisStaltaMaxEl.textContent = `Max: ${maxVal.toFixed(2)}`;
+      if (seisStaltaMaxTimeEl) {
+        seisStaltaMaxTimeEl.textContent = "at " + pdtStr(new Date(bufTimes[maxAbsIdx] * 1000));
+      }
+    } else {
+      seisStaltaMaxEl.textContent = "Max: —";
+      if (seisStaltaMaxTimeEl) seisStaltaMaxTimeEl.textContent = "";
+    }
   }
 }
 
@@ -249,45 +262,87 @@ function wsConnect() {
   };
 }
 
-// ── Path 2: IRIS public archive, polled for the freshest available window ──
-async function fetchSeismogramIRIS() {
-  if (!canvas || wsUsing) return;
+// ── Path 2: IRIS public archive ──────────────────────────────────────────────
+// Fetched RAW (no per-request demeaning) so consecutive chunks share one
+// consistent baseline — demeaning each request independently was creating a
+// visible seam/jump every time a new chunk joined the buffer. Centering for
+// display and for the STA/LTA calculation is handled once, locally, in
+// drawWaveform()/computeStaLtaSeries() instead.
+//
+// After the first backfill, every later poll only asks for the *new* slice
+// since the last sample we already have and appends it — never wipes and
+// re-fetches the whole window — so the buffer only ever grows forward. That
+// was the actual cause of the display "jumping around": each poll used to
+// replace the entire 60-minute buffer with a fresh request that could land
+// on a different (sometimes fresher, sometimes staler) IRIS delay tier than
+// the previous poll, making the visible right edge jump backward and
+// forward at random each cycle.
+let lastFetchedEndSec = null;
+
+async function irisFetchRange(startTime, endTime) {
   const fmt = (d) => d.toISOString().slice(0, 19);
+  const url = `https://service.iris.edu/irisws/timeseries/1/query` +
+    `?net=PB&sta=B054&loc=--&cha=EHZ` +
+    `&starttime=${fmt(startTime)}&endtime=${fmt(endTime)}&output=ascii1`;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const text = await res.text();
+  if (!text || !text.includes("TIMESERIES")) return null;
+  const lines = text.trim().split("\n");
+  const sps = parseFloat((lines[0].match(/([\d.]+)\s+sps/i) || [])[1]) || 100;
+  const vals = [];
+  for (let i = 1; i < lines.length; i++) {
+    const v = parseFloat(lines[i]);
+    if (!isNaN(v)) vals.push(v);
+  }
+  if (vals.length < 2) return null;
+  return { sps, vals };
+}
+
+async function fetchInitialBackfill() {
   const WIN_MIN = 60;
   for (const delayMin of [1, 2, 5, 10, 20]) {
     const endTime = new Date(Date.now() - delayMin * 60 * 1000);
     const startTime = new Date(endTime.getTime() - WIN_MIN * 60 * 1000);
-    const url = `https://service.iris.edu/irisws/timeseries/1/query` +
-      `?net=PB&sta=B054&loc=--&cha=EHZ` +
-      `&starttime=${fmt(startTime)}&endtime=${fmt(endTime)}&output=ascii1&demean=true`;
-    try {
-      const res = await fetch(url);
-      if (!res.ok) continue;
-      const text = await res.text();
-      if (!text || !text.includes("TIMESERIES")) continue;
-      const lines = text.trim().split("\n");
-      const sps = parseFloat((lines[0].match(/([\d.]+)\s+sps/i) || [])[1]) || 100;
-      const vals = [];
-      for (let i = 1; i < lines.length; i++) {
-        const v = parseFloat(lines[i]);
-        if (!isNaN(v)) vals.push(v);
-      }
-      if (vals.length < 2) continue;
+    const result = await irisFetchRange(startTime, endTime);
+    if (!result) continue;
+    bufReplace(endTime.getTime() / 1000, result.sps, result.vals);
+    lastFetchedEndSec = endTime.getTime() / 1000;
+    seisStatus.textContent = "PB.B054";
+    seisStatus.className = "seis-status ok";
+    redraw();
+    return true;
+  }
+  return false;
+}
 
-      bufReplace(endTime.getTime() / 1000, sps, vals);
-      seisStatus.textContent = "PB.B054";
-      seisStatus.className = "seis-status ok";
-      redraw();
-      return;
-    } catch (e) {
-      // try the next tier
-    }
+async function fetchSeismogramIRIS() {
+  if (!canvas || wsUsing) return;
+
+  if (lastFetchedEndSec == null) {
+    await fetchInitialBackfill();
+    return;
   }
-  if (bufVals.length === 0) {
-    seisStatus.textContent = "PB.B054 — unavailable";
-    seisStatus.className = "seis-status err";
-    drawWaveform(null, 0, 0);
+
+  // Ask for whatever's new since the last sample we already have, trying
+  // progressively larger delays only if the freshest data isn't published
+  // yet. Never re-requests data we already hold.
+  for (const delaySec of [45, 90, 180, 360]) {
+    const endTime = new Date(Date.now() - delaySec * 1000);
+    const startTime = new Date(lastFetchedEndSec * 1000);
+    if (endTime.getTime() <= startTime.getTime() + 1000) continue; // nothing new at this tier yet
+    const result = await irisFetchRange(startTime, endTime);
+    if (!result) continue;
+    bufAppend(endTime.getTime() / 1000, result.sps, result.vals);
+    bufSps = result.sps;
+    lastFetchedEndSec = endTime.getTime() / 1000;
+    seisStatus.textContent = "PB.B054";
+    seisStatus.className = "seis-status ok";
+    redraw();
+    return;
   }
+  // Nothing new published yet this cycle — leave the existing buffer as is
+  // rather than touching it, so the display stays stable instead of jumping.
 }
 
 function startIrisPolling() {
