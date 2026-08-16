@@ -203,6 +203,13 @@ nav a.active {
   font-size: 0.95rem;
 }
 
+.time-since {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 4px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
 .like-widget {
   display: flex;
   align-items: center;
