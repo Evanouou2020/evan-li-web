@@ -280,19 +280,31 @@ function wsConnect() {
 let lastFetchedEndSec = null;
 
 async function irisFetchRange(startTime, endTime) {
+  // IRIS's old convenience endpoint (irisws/timeseries) was permanently
+  // decommissioned when IRIS DMC merged into EarthScope — it now returns
+  // "This service is no longer available." for every request, which is why
+  // this panel got stuck on "Waiting for live data...". EarthScope's
+  // standard FDSNWS dataselect service is still up; format=geocsv gives the
+  // same kind of easy-to-parse plain text instead of raw miniSEED.
   const fmt = (d) => d.toISOString().slice(0, 19);
-  const url = `https://service.iris.edu/irisws/timeseries/1/query` +
+  const url = `https://service.earthscope.org/fdsnws/dataselect/1/query` +
     `?net=PB&sta=B054&loc=--&cha=EHZ` +
-    `&starttime=${fmt(startTime)}&endtime=${fmt(endTime)}&output=ascii1`;
+    `&start=${fmt(startTime)}&end=${fmt(endTime)}&format=geocsv`;
   const res = await fetch(url);
-  if (!res.ok) return null;
+  if (!res.ok) return null; // includes 204 No Content = no data published yet
   const text = await res.text();
-  if (!text || !text.includes("TIMESERIES")) return null;
+  if (!text || !text.includes("dataset: GeoCSV")) return null;
   const lines = text.trim().split("\n");
-  const sps = parseFloat((lines[0].match(/([\d.]+)\s+sps/i) || [])[1]) || 100;
+  let sps = 100;
   const vals = [];
-  for (let i = 1; i < lines.length; i++) {
-    const v = parseFloat(lines[i]);
+  for (const line of lines) {
+    if (line.startsWith("#")) {
+      const m = line.match(/^#\s*sample_rate_hz:\s*([\d.]+)/i);
+      if (m) sps = parseFloat(m[1]);
+      continue;
+    }
+    if (line.startsWith("Time")) continue; // CSV header row
+    const v = parseFloat(line.split(",")[1]);
     if (!isNaN(v)) vals.push(v);
   }
   if (vals.length < 2) return null;
