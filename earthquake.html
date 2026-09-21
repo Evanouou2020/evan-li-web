@@ -146,6 +146,28 @@
       seconds before to 60 seconds after) to a CSV file and can push a
       Discord or ntfy alert.
     </p>
+
+    <div class="seis-panel">
+      <div class="seis-header">
+        <span class="seis-title">LIVE WAVEFORM</span>
+        <span class="seis-sub">// ESP32 + LSM6DS3 &mdash; DIY Seismometer, X/Y/Z deviation</span>
+        <span class="seis-status" id="esp32-status">loading…</span>
+      </div>
+      <canvas id="esp32-canvas"></canvas>
+      <div class="seis-footer">
+        <span class="esp32-legend"><span class="esp32-swatch esp32-swatch-x"></span>X</span>
+        <span class="esp32-legend"><span class="esp32-swatch esp32-swatch-y"></span>Y</span>
+        <span class="esp32-legend"><span class="esp32-swatch esp32-swatch-z"></span>Z</span>
+        <span class="seis-sep">|</span>
+        <span class="seis-stalta" id="esp32-stalta">STA/LTA: —</span>
+        <span class="seis-stalta-max-block">
+          <span class="seis-stalta-max" id="esp32-mmi">MMI: —</span>
+          <span class="seis-stalta-max-time" id="esp32-pga">PGA: —</span>
+        </span>
+        <span class="seis-range" id="esp32-range"></span>
+      </div>
+    </div>
+
     <ul>
       <li><strong>Sensor:</strong> SparkFun LSM6DS3 6-DOF IMU — accelerometer only (gyroscope disabled to save power), &plusmn;2g range for the best resolution on small ground motion</li>
       <li><strong>Sample rate:</strong> 50 Hz</li>
@@ -180,5 +202,6 @@
   <script src="view-counter.js"></script>
   <script src="nav-dropdown.js"></script>
   <script src="live-waveform.js"></script>
+  <script src="esp32-waveform.js"></script>
 </body>
 </html>

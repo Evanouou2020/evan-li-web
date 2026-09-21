@@ -416,6 +416,23 @@ main ul:not(.quake-list) li {
   color: #2a5060;
 }
 
+.esp32-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.esp32-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.esp32-swatch-x { background: #ff5c5c; }
+.esp32-swatch-y { background: #5cff8f; }
+.esp32-swatch-z { background: #5c9fff; }
+
 .mag-filter {
   display: flex;
   gap: 8px;
