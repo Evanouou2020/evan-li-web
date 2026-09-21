@@ -120,6 +120,40 @@
       </div>
     </div>
 
+    <h2>My DIY seismometer</h2>
+    <p>
+      To get around IRIS SeedLink's built-in lag, I've been building my own
+      low-latency station from scratch: an ESP32 microcontroller wired to a
+      SparkFun LSM6DS3 accelerometer, sampling at 50 Hz and streaming
+      straight over WiFi (UDP) to a live dashboard on my own computer — no
+      third-party archive sitting in between, so there's no multi-minute
+      publish delay to wait on. A microSD card backs up every sample
+      locally in case WiFi drops, and since there's no dedicated real-time
+      clock chip on board, timestamps come from an NTP sync over WiFi at
+      boot, extrapolated from the microcontroller's own clock in between
+      syncs.
+    </p>
+    <p>
+      The receiving software is a self-calibrating STA/LTA detector: it
+      watches 30 seconds of quiet baseline noise and sets its own trigger
+      threshold from that, so it doesn't need to be manually re-tuned if I
+      move it somewhere new. Ground motion is tracked as peak acceleration
+      and, via a leaky integrator, an estimated peak velocity — both feed
+      into a Modified Mercalli Intensity estimate using the actual
+      empirical PGA/PGV-to-intensity relationships from Wald et al. (1999),
+      the same style of formula ShakeMap itself is built on, not a made-up
+      scale. Every trigger automatically saves a snippet of the event (60
+      seconds before to 60 seconds after) to a CSV file and can push a
+      Discord or ntfy alert.
+    </p>
+    <ul>
+      <li><strong>Sensor:</strong> SparkFun LSM6DS3 6-DOF IMU — accelerometer only (gyroscope disabled to save power), &plusmn;2g range for the best resolution on small ground motion</li>
+      <li><strong>Sample rate:</strong> 50 Hz</li>
+      <li><strong>Link:</strong> WiFi &rarr; UDP, straight to a local dashboard, no cloud archive in the path</li>
+      <li><strong>Backup:</strong> local microSD logging in case WiFi drops</li>
+      <li><strong>Detection:</strong> self-calibrating STA/LTA, re-tunable to wherever it's mounted with a keypress</li>
+    </ul>
+
     <h2>Other tools</h2>
     <ul>
       <li>
