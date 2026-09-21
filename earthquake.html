@@ -159,10 +159,22 @@
         <span class="esp32-legend"><span class="esp32-swatch esp32-swatch-y"></span>Y</span>
         <span class="esp32-legend"><span class="esp32-swatch esp32-swatch-z"></span>Z</span>
         <span class="seis-sep">|</span>
+        <span>Window:</span>
+        <span class="seis-win-btns">
+          <button class="seis-win-btn esp32-win-btn" data-sec="60">1m</button>
+          <button class="seis-win-btn esp32-win-btn active" data-sec="300">5m</button>
+          <button class="seis-win-btn esp32-win-btn" data-sec="600">10m</button>
+          <button class="seis-win-btn esp32-win-btn" data-sec="1800">30m</button>
+          <button class="seis-win-btn esp32-win-btn" data-sec="3600">60m</button>
+        </span>
         <span class="seis-stalta" id="esp32-stalta">STA/LTA: —</span>
         <span class="seis-stalta-max-block">
-          <span class="seis-stalta-max" id="esp32-mmi">MMI: —</span>
-          <span class="seis-stalta-max-time" id="esp32-pga">PGA: —</span>
+          <span class="seis-stalta-max" id="esp32-max">Max: —</span>
+          <span class="seis-stalta-max-time" id="esp32-max-time"></span>
+        </span>
+        <span class="seis-stalta-max-block">
+          <span class="seis-stalta-max" id="esp32-max-hour">Max/1hr: —</span>
+          <span class="seis-stalta-max-time" id="esp32-mmi">MMI: —</span>
         </span>
         <span class="seis-range" id="esp32-range"></span>
       </div>

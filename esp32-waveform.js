@@ -5,8 +5,13 @@
 // Unlike PB.B054, this one only exists while Evan's own computer is on and
 // that script is running, so "offline" here just means the setup is off
 // right now, not a bug.
+//
+// The server now supports ?seconds=N to serve different window sizes (1m
+// through 60m), and its in-memory buffer is pre-loaded from the sensor's
+// own log file on startup, so a full hour of real history is available
+// immediately rather than needing to be re-accumulated after every restart.
 
-const ESP32_URL = "https://esp32.myearthquake.dpdns.org/recent";
+const ESP32_BASE_URL = "https://esp32.myearthquake.dpdns.org/recent";
 const ESP32_POLL_MS = 3000;
 const ESP32_STALE_AFTER_S = 15; // if the newest sample is older than this, call it stale
 
@@ -15,10 +20,19 @@ const esp32Ctx = esp32Canvas ? esp32Canvas.getContext("2d") : null;
 const esp32Status = document.getElementById("esp32-status");
 const esp32Range = document.getElementById("esp32-range");
 const esp32StaltaEl = document.getElementById("esp32-stalta");
+const esp32MaxEl = document.getElementById("esp32-max");
+const esp32MaxTimeEl = document.getElementById("esp32-max-time");
+const esp32MaxHourEl = document.getElementById("esp32-max-hour");
 const esp32MmiEl = document.getElementById("esp32-mmi");
-const esp32PgaEl = document.getElementById("esp32-pga");
 
 let esp32DisplayW = 0, esp32DisplayH = 160;
+let esp32WindowSec = 300; // 5m default, matches the "active" button in the HTML
+
+function esp32PdtStr(d) {
+  return d.toLocaleTimeString("en-US", {
+    timeZone: "America/Los_Angeles", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  }) + " PDT";
+}
 
 function esp32ResizeCanvas() {
   if (!esp32Canvas) return;
@@ -93,10 +107,18 @@ function esp32DrawWaveform(times, dx, dy, dz) {
   esp32Ctx.fillText("m/s²", W - 4, H - 6);
 }
 
+function esp32SetWindow(sec) {
+  esp32WindowSec = sec;
+  document.querySelectorAll(".esp32-win-btn").forEach((b) => {
+    b.classList.toggle("active", Number(b.dataset.sec) === sec);
+  });
+  fetchEsp32();
+}
+
 async function fetchEsp32() {
   if (!esp32Canvas) return;
   try {
-    const res = await fetch(ESP32_URL, { cache: "no-store" });
+    const res = await fetch(`${ESP32_BASE_URL}?seconds=${esp32WindowSec}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
@@ -107,7 +129,8 @@ async function fetchEsp32() {
       return;
     }
 
-    const ageSec = (Date.now() - new Date(data.latest_sample_utc).getTime()) / 1000;
+    const latestSampleMs = new Date(data.latest_sample_utc).getTime();
+    const ageSec = (Date.now() - latestSampleMs) / 1000;
     if (ageSec > ESP32_STALE_AFTER_S) {
       esp32Status.textContent = `offline (last sample ${ageSec.toFixed(0)}s ago)`;
       esp32Status.className = "seis-status err";
@@ -121,15 +144,34 @@ async function fetchEsp32() {
 
     esp32DrawWaveform(data.times_rel_s, data.dx, data.dy, data.dz);
 
-    const last = data.times_rel_s[data.times_rel_s.length - 1] || 0;
-    esp32Range.textContent = `${last.toFixed(0)}s window &middot; ${data.sample_rate_hz} Hz`.replace("&middot;", "·");
+    const times = data.times_rel_s;
+    const last = times[times.length - 1] || 0;
+    esp32Range.textContent = `${(last / 60).toFixed(1)}m window · ${data.sample_rate_hz} Hz`;
 
     const ratio = data.ratio[data.ratio.length - 1];
     esp32StaltaEl.textContent = data.calibrating
       ? "STA/LTA: calibrating"
       : `STA/LTA: ${ratio != null ? ratio.toFixed(2) : "—"}${data.triggered ? " ⚠" : ""}`;
+
+    // Max STA/LTA within the currently selected window, plus when it happened —
+    // same idea as the PB.B054 panel above, computed client-side from the
+    // window this response actually covers.
+    let maxVal = null, maxIdx = -1;
+    for (let i = 0; i < data.ratio.length; i++) {
+      const v = data.ratio[i];
+      if (v != null && (maxVal == null || v > maxVal)) { maxVal = v; maxIdx = i; }
+    }
+    if (maxVal != null) {
+      esp32MaxEl.textContent = `Max: ${maxVal.toFixed(2)}`;
+      const maxAgoS = last - times[maxIdx];
+      esp32MaxTimeEl.textContent = "at " + esp32PdtStr(new Date(latestSampleMs - maxAgoS * 1000));
+    } else {
+      esp32MaxEl.textContent = "Max: —";
+      esp32MaxTimeEl.textContent = "";
+    }
+
+    esp32MaxHourEl.textContent = `Max/1hr: ${data.ratio_last_hour != null ? data.ratio_last_hour.toFixed(2) : "—"}`;
     esp32MmiEl.textContent = `MMI: ${data.mmi_roman} (${data.mmi.toFixed(1)})`;
-    esp32PgaEl.textContent = `PGA: ${data.pga_ms2.toFixed(4)} m/s²`;
   } catch (err) {
     esp32Status.textContent = "offline";
     esp32Status.className = "seis-status err";
@@ -141,6 +183,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!esp32Canvas) return;
   esp32ResizeCanvas();
   window.addEventListener("resize", esp32ResizeCanvas);
+
+  document.querySelectorAll(".esp32-win-btn").forEach((btn) => {
+    btn.addEventListener("click", () => esp32SetWindow(Number(btn.dataset.sec)));
+  });
+
   fetchEsp32();
   setInterval(fetchEsp32, ESP32_POLL_MS);
 });
